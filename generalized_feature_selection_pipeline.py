@@ -94,3 +94,48 @@ class FeatureSelector:
             'top_numeric': [x[0] for x in num_results],
             'top_categorical': [x[0] for x in cat_results]
         }
+
+# Load your dataset
+df = pd.read_csv('/content/train.csv')
+target = 'SalePrice'
+
+selector = FeatureSelector(df, target)
+results = selector.run()
+
+# Show Tukey HSD for a significant categorical feature
+if results['categorical']:
+    selector.tukey_test(results['categorical'][0])
+
+
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def plot_top_numerical_corr(df, numerical_df, top_n=10):
+    top_features = numerical_df.sort_values(by='Correlation', ascending=False).head(top_n)
+    plt.figure(figsize=(10,6))
+    sns.barplot(x='Correlation', y='Feature', data=top_features, palette='viridis')
+    plt.title(f'Top {top_n} Numerical Features by Pearson Correlation')
+    plt.xlabel('Correlation with Target')
+    plt.ylabel('Feature')
+    plt.tight_layout()
+    plt.show()
+
+def plot_categorical_boxplots(df, categorical_features, target, top_n=5):
+    for feature in categorical_features[:top_n]:
+        plt.figure(figsize=(12,6))
+        sns.boxplot(x=feature, y=target, data=df)
+        plt.title(f'Distribution of {target} by {feature}')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.show()
+
+
+results = selector.run()
+
+# Plot top numerical features
+plot_top_numerical_corr(df, results['numerical_df'], top_n=10)
+
+# Plot boxplots for top categorical features
+plot_categorical_boxplots(df, results['categorical'], target, top_n=5)
+
